@@ -211,8 +211,32 @@ export default function FunnelEffects() {
       const onOpen = (e) => {
         const vid = e.target.closest('[data-video]');
         if (vid) {
+          const url = vid.dataset.video || '';
+          /* Two hosts, two players. The Spaces clips are real media files and
+             play in a <video>; a Vimeo URL is a PAGE and would fail silently in
+             one, so it needs an iframe. dnt is deliberately absent here for the
+             same reason it was removed from the hero VSL: it suppresses all of
+             Vimeo's watch-time analytics. */
+          if (/(^|\.)vimeo\.com\//.test(url)) {
+            const wrap = document.createElement('div');
+            wrap.className = 'overlay-embed';
+            /* An iframe has no intrinsic size, so without the clip's real ratio
+               (resolved server-side via oEmbed) it would letterbox. 9/16 is the
+               fallback because these testimonials are shot portrait. */
+            wrap.style.aspectRatio = vid.dataset.ratio || '9 / 16';
+            const f = document.createElement('iframe');
+            const sep = url.includes('?') ? '&' : '?';
+            f.src = `${url}${sep}autoplay=1&playsinline=1&badge=0&autopause=0&title=0&byline=0&portrait=0`;
+            f.allow = 'autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share';
+            f.setAttribute('allowfullscreen', '');
+            f.referrerPolicy = 'strict-origin-when-cross-origin';
+            f.title = vid.querySelector('.nm')?.textContent?.trim() || 'Client testimonial';
+            wrap.appendChild(f);
+            open(wrap);
+            return;
+          }
           const v = document.createElement('video');
-          v.src = vid.dataset.video;
+          v.src = url;
           v.controls = true; v.autoplay = true; v.playsInline = true; v.preload = 'metadata';
           open(v);
           return;

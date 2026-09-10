@@ -22,8 +22,31 @@ import { Ico } from '@/components/Icons';
 import { Gap } from '@/components/Price';
 import { CONFIG } from '@/lib/config';
 import { VIDEOS, CASES } from '@/lib/content';
+import { isVimeoUrl, getVimeoMeta } from '@/lib/vimeo';
 
-export default function S04Proof() {
+export default async function S04Proof() {
+  /* Resolve every card's source ONCE, server-side.
+     Two hosts live side by side here: four clips on the Spaces CDN that play in
+     a <video>, and Sania's on Vimeo which cannot. The Vimeo card shows the
+     video's own oEmbed thumbnail as a still and hands the real player to the
+     lightbox on click, so the grid stays visually uniform without loading a
+     third-party iframe on first paint. */
+  const cards = await Promise.all(VIDEOS.map(async (v) => {
+    const src = (v.envKey && CONFIG[v.envKey]) || v.url || null;
+    if (!src) return null;
+    if (!isVimeoUrl(src)) return { ...v, src, vimeo: false };
+    const meta = await getVimeoMeta(src);
+    return {
+      ...v,
+      src,
+      vimeo: true,
+      poster: meta?.thumbnail || null,
+      /* Passed to the lightbox so the iframe gets the clip's real shape; an
+         iframe has no intrinsic size to lay out from. */
+      ratio: meta?.width && meta?.height ? `${meta.width}/${meta.height}` : null,
+    };
+  }));
+
   return (
 <section className="section proof">
   <div className="wrap">
@@ -41,34 +64,48 @@ export default function S04Proof() {
 
     {/* ── 13a · video testimonials — ARJ's .af-tcard shell, portrait media ── */}
     <div className="tcards tcards-vid">
-      {VIDEOS.map((v, i) => {
-        const src = CONFIG[v.envKey];
-        if (!src) return null;
+      {cards.map((v, i) => {
+        if (!v) return null;
         return (
           <button
             className="tcard tcard-vid reveal"
             key={v.id}
-            data-video={src}
+            data-video={v.src}
+            data-ratio={v.ratio || undefined}
             data-d={i > 0 ? String(i) : undefined}
             type="button"
           >
             {/* display:block is load-bearing — a <span> inside a <button> is
                 inline and ignores aspect-ratio, collapsing the plate. */}
             <span className="tphoto">
-              {/* Muted, inline, looping preview. iOS Safari does NOT paint a
-                  seeked-frame poster from preload=metadata (the clip showed
-                  blank on mobile), but it DOES render muted-inline video, so
-                  FunnelEffects plays each only while it is on screen.
+              {v.vimeo ? (
+                /* Vimeo card. A still, not a looping clip: embedding the player
+                   here would pull a third-party iframe (and its JS) into first
+                   paint for every visitor who never clicks, which is exactly
+                   the cost the <video> cards were rewritten to avoid. The
+                   thumbnail is the video's own oEmbed frame, so it matches the
+                   others rather than looking like a placeholder. */
+                v.poster ? (
+                  <img className="tposter" src={v.poster} alt="" loading="lazy" decoding="async" />
+                ) : (
+                  <span className="tposter tposter-blank" aria-hidden="true" />
+                )
+              ) : (
+                /* Muted, inline, looping preview. iOS Safari does NOT paint a
+                   seeked-frame poster from preload=metadata (the clip showed
+                   blank on mobile), but it DOES render muted-inline video, so
+                   FunnelEffects plays each only while it is on screen.
 
-                  ⚠ NO src AND NO autoPlay HERE, deliberately. With both present
-                  the browser began streaming all four clips on first paint,
-                  regardless of the in-view gating, and `loop` kept them
-                  streaming: 66 MB on a mobile trace, which also blew the page
-                  out of the back/forward cache ("an active network connection
-                  received too much data"). The URL rides on data-src and
-                  FunnelEffects promotes it to src the first time the card
-                  enters the viewport. */}
-              <video data-src={src} preload="none" muted loop playsInline />
+                   ⚠ NO src AND NO autoPlay HERE, deliberately. With both present
+                   the browser began streaming all four clips on first paint,
+                   regardless of the in-view gating, and `loop` kept them
+                   streaming: 66 MB on a mobile trace, which also blew the page
+                   out of the back/forward cache ("an active network connection
+                   received too much data"). The URL rides on data-src and
+                   FunnelEffects promotes it to src the first time the card
+                   enters the viewport. */
+                <video data-src={v.src} preload="none" muted loop playsInline />
+              )}
               <span className="tglass" />
               <span className="tplay"><Ico id="play" /></span>
               <span className="tag ta">Video</span>
