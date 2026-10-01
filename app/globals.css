@@ -5524,3 +5524,231 @@ body.locked { overflow: hidden; }
 .overlay-inner .overlay-embed iframe {
   position: absolute; inset: 0; width: 100%; height: 100%; border: 0;
 }
+
+
+/* ============================================================================
+   THANK-YOU · CONFIRMATION STEP (components/ConfirmationStep.jsx)
+   ----------------------------------------------------------------------------
+   The post-booking bridge: slot picked, call not yet confirmed, one action to
+   finish it. Mobile-first — the base rules ARE the phone layout and the
+   media query widens it, because this screen is overwhelmingly opened on a
+   phone straight after checkout.
+
+   Every value resolves to a token the landing page already ships. The brief
+   named --font-primary / --bg-primary / --text-primary / --color-accent; this
+   project has none of those, so they map to --fh/--fb, --bg, --ink/--ink-soft
+   and --brand.
+   ========================================================================== */
+.typg .ty-cs {
+  position: relative;
+  padding: 40px 0 34px;
+  background: var(--bg);
+  text-align: center;
+  overflow: hidden;
+}
+
+/* THE MESH + BLOOM, carried over from the .ty-hero this section replaced.
+   Dropping them flattened the page to plain white, which is not what the rest
+   of the funnel looks like: the hero, and this page before it, both sit on the
+   masked grid with a brand glow behind the headline. Values are the former
+   .ty-hero decorations verbatim so the two are indistinguishable. */
+.typg .ty-cs::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(var(--bg-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+  background-size: 46px 46px;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 34%, #000 38%, transparent 76%);
+          mask-image: radial-gradient(ellipse at 50% 34%, #000 38%, transparent 76%);
+  opacity: .8;
+}
+
+.typg .ty-cs::after {
+  content: ""; position: absolute; top: -160px; left: 50%;
+  width: 620px; height: 620px; max-width: 100%; transform: translateX(-50%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--brand) 15%, transparent), transparent 64%);
+  filter: blur(10px); pointer-events: none;
+}
+
+/* Lifts the content above both decorations. */
+.typg .ty-cs-inner { position: relative; z-index: 1; }
+
+/* ── Headline ───────────────────────────────────────────────────────────── */
+.typg .ty-cs-h1 {
+  max-width: 18ch;
+  margin: 0 auto 26px;
+  font-family: var(--f-display);
+  font-size: clamp(27px, 7.2vw, 46px);
+  font-weight: 700;
+  line-height: 1.16;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+/* The ONE alert word. Uses --timer-ink, the urgency red the countdown already
+   owns, rather than inventing a second red: the one-hue rule in this system
+   carves out exactly one exception for urgency, and this reuses it instead of
+   widening it. Swap to var(--brand) if it should read calmer. */
+.typg .ty-cs-alert {
+  color: var(--timer-ink);
+  font-style: normal;
+  font-weight: 800;
+}
+
+/* ── Avatar · circular badge on the brand ring ──────────────────────────── */
+.typg .ty-cs-avatar {
+  width: clamp(150px, 42vw, 212px);
+  aspect-ratio: 1;
+  margin: 0 auto 26px;
+  border-radius: 50%;
+  padding: 5px;                       /* the ring itself */
+  background: var(--bg);
+  border: 2px solid color-mix(in srgb, var(--brand) 55%, transparent);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--brand) 20%, transparent);
+}
+
+.typg .ty-cs-avatar img {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 18%;           /* bias to the face, not the torso */
+  display: block;
+  background: var(--brand-soft);      /* fills the circle while it decodes */
+}
+
+/* ── Body copy ──────────────────────────────────────────────────────────── */
+.typg .ty-cs-lead {
+  max-width: 34ch;
+  margin: 0 auto 12px;
+  font-family: var(--f-sans);
+  font-size: clamp(15px, 4vw, 17.5px);
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.typg .ty-cs-lead strong { color: var(--ink); font-weight: 700; }
+
+/* ── CTA ────────────────────────────────────────────────────────────────── */
+.typg .ty-cs-cta-wrap { margin-top: 26px; }
+
+/* THE SITE'S CTA, not WhatsApp's. This shipped in WhatsApp green first; the
+   brand gradient is the funnel's own button idiom and is what every other CTA
+   on the site wears, so the green was the one thing on this screen still
+   dressed like the reference rather than like the website. Gradient, border
+   and shadow are .cta-big's, token for token. The WhatsApp glyph stays its real
+   mark and carries the channel on its own. */
+.typg .ty-cs-cta {
+  position: relative; overflow: hidden;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 56px;                   /* comfortably past the 44px tap floor */
+  padding: 15px 40px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 50%, var(--accent) 100%);
+  border: 1px solid color-mix(in srgb, var(--accent-2) 70%, transparent);
+  color: #fff;
+  font-family: var(--f-sans);
+  font-size: clamp(16px, 4.4vw, 18px);
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  box-shadow:
+    0 10px 26px color-mix(in srgb, var(--accent-deep) 22%, transparent),
+    0 1px 0 rgba(255,255,255,.12) inset;
+  transition: transform .22s ease, box-shadow .22s ease, background .22s ease;
+  /* REUSED, not reinvented: the landing page already breathes its primary CTA
+     with these exact keyframes, so this button moves like the rest of the
+     funnel instead of introducing a second idiom. */
+  animation: ctaBreath 3.4s ease-in-out infinite;
+}
+
+/* The inset hairline ring, the third piece of .cta-big's anatomy. */
+.typg .ty-cs-cta::before {
+  content: ""; position: absolute; inset: 4px; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent-light) 40%, transparent);
+  pointer-events: none; z-index: 1;
+}
+
+/* The travelling sheen, also lifted from .cta-big. */
+.typg .ty-cs-cta::after {
+  content: ""; position: absolute; top: 0; left: -60%; width: 50%; height: 100%;
+  background: linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.45) 50%, rgba(255,255,255,0) 100%);
+  transform: skewX(-20deg); pointer-events: none;
+  animation: ctaShine 4s ease-in-out infinite; animation-delay: 1s;
+}
+
+.typg .ty-cs-cta > * { position: relative; z-index: 2; }
+
+.typg .ty-cs-cta-ico {
+  width: 22px; height: 22px; flex: none;
+  color: #fff;                        /* the glyph is filled, see Icons.jsx */
+}
+
+.typg .ty-cs-cta:hover {
+  transform: translateY(-2px) scale(1.02);
+  animation: none;                    /* hover takes over from the loop */
+  box-shadow: 0 14px 32px color-mix(in srgb, var(--accent-deep) 30%, transparent);
+}
+
+.typg .ty-cs-cta:active { transform: translateY(0) scale(.995); }
+
+.typg .ty-cs-cta:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 35%, transparent);
+}
+
+/* No NEXT_PUBLIC_WHATSAPP_NUMBER: the anchor has no href, so it must not look
+   or behave like a live button. */
+.typg .ty-cs-cta[aria-disabled="true"] {
+  opacity: .5; cursor: not-allowed; animation: none; pointer-events: none;
+}
+.typg .ty-cs-cta[aria-disabled="true"]::after { display: none; }
+
+/* ── Mobile sticky bar ──────────────────────────────────────────────────── */
+/* Visible from first paint by design: it carries no .reveal class, so it is
+   never opacity:0 waiting on JS. Below .overlay (--z-overlay 1000) so the
+   lightbox is never trapped underneath it. */
+.typg .ty-cs-sticky {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: var(--z-chrome);
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border);
+}
+
+.typg .ty-cs-sticky-inner { display: flex; }
+.typg .ty-cs-sticky .ty-cs-cta { width: 100%; }
+
+/* The bar floats over the page, so the footer needs room to clear it. */
+.typg { padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .typg .ty-cs-cta { animation: none; }
+  .typg .ty-cs-cta::after { animation: none; display: none; }
+  .typg .ty-cs-cta:hover { transform: none; }
+}
+
+/* ── ≥768px · the sticky bar stands down, the inline CTA takes over ─────── */
+@media (min-width: 768px) {
+  .typg { padding-bottom: 0; }
+  .typg .ty-cs-sticky { display: none; }
+  .typg .ty-cs { padding: 54px 0 38px; }
+  .typg .ty-cs-h1 { margin-bottom: 30px; }
+  .typg .ty-cs-avatar { margin-bottom: 30px; }
+
+  /* The mobile sizing is tuned for a full-width sticky bar. Once the button is
+     a shrink-to-fit pill under a 46px headline it reads undersized, so desktop
+     gets its own scale rather than letting the clamp cap it at phone size. */
+  .typg .ty-cs-cta {
+    min-height: 66px;
+    padding: 19px 58px;
+    font-size: 20px;
+    gap: 13px;
+    border-radius: 999px;
+  }
+  .typg .ty-cs-cta-ico { width: 26px; height: 26px; }
+  .typg .ty-cs-cta-wrap { margin-top: 30px; }
+}

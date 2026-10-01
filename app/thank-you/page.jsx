@@ -2,10 +2,14 @@ import Link from 'next/link';
 import { Ico } from '@/components/Icons';
 import { Gap } from '@/components/Price';
 import UtilityFooter from '@/components/UtilityFooter';
-import { CONFIG } from '@/lib/config';
+import ConfirmationStep from '@/components/ConfirmationStep';
+import { CONFIG, CALL_NAME } from '@/lib/config';
 
+/* The tab title has to say what the tab IS. "Booking Confirmed" contradicted
+   the screen the moment this page became a confirmation STEP, and it is the
+   one label she sees when hunting through tabs to come back and finish. */
 export const metadata = {
-  title: 'Booking Confirmed · Reset by Shruti Solanki',
+  title: `WAIT! Confirm Your ${CALL_NAME} · Reset by Shruti Solanki`,
   robots: { index: false, follow: false },
 };
 
@@ -60,20 +64,11 @@ export default function ThankYouPage() {
         </div>
       </header> */}
 
-      {/* ── HERO · pill + headline ───────────────────────────────────────── */}
-      <section className="ty-hero">
-        <div className="wrap ty-hero-inner">
-          <span className="ty-pill reveal">
-            <span className="dot" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg>
-            </span>
-            Booking Confirmed
-          </span>
-          <h1 className="ty-h1 reveal" data-d="1">
-            Your 1-on-1 Call With <em className="ty-accent">Shruti Solanki</em> Is Locked In.
-          </h1>
-        </div>
-      </section>
+      {/* ── HERO · the confirmation STEP, not a confirmation ──────────────
+          Replaces the former "Booking Confirmed / Is Locked In" hero. The slot
+          being picked is step one; the call is only confirmed once she messages
+          on WhatsApp, which is what this screen exists to get done. */}
+      <ConfirmationStep />
 
       {/* ── BODY · the two ruled tick-list cards ─────────────────────────── */}
       <section className="ty-body">
